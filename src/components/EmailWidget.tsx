@@ -17,6 +17,8 @@ export default function EmailWidget() {
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch("/api/emails")
@@ -29,25 +31,79 @@ export default function EmailWidget() {
       .finally(() => setLoading(false));
   }, []);
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const deleteSelected = async () => {
+    // Remove from UI immediately
+    setEmails((prev) => prev.filter((e) => !selected.has(e.id)));
+    setSelected(new Set());
+    setSelectMode(false);
+
+    // Archive/trash via API
+    try {
+      await fetch("/api/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "archive", ids: [...selected] }),
+      });
+    } catch {
+      // Already removed from UI, fail silently
+    }
+  };
+
   return (
     <div
-      className="rounded-2xl p-5"
+      className="rounded-2xl p-5 flex flex-col"
       style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
     >
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           📧 Inbox
         </h2>
-        {emails.filter((e) => e.unread).length > 0 && (
-          <span
-            className="text-xs px-2 py-0.5 rounded-full font-medium"
-            style={{ background: "var(--accent)", color: "white" }}
+        <div className="flex items-center gap-2">
+          {selectMode && selected.size > 0 && (
+            <button
+              onClick={deleteSelected}
+              className="text-xs px-2.5 py-1 rounded-lg font-medium transition-colors"
+              style={{ background: "var(--danger)", color: "white" }}
+            >
+              Delete {selected.size}
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setSelectMode(!selectMode);
+              setSelected(new Set());
+            }}
+            className="text-xs px-2.5 py-1 rounded-lg font-medium transition-colors"
+            style={{
+              background: selectMode ? "var(--accent)" : "var(--bg-primary)",
+              color: selectMode ? "white" : "var(--text-secondary)",
+              border: `1px solid ${selectMode ? "var(--accent)" : "var(--border)"}`,
+            }}
           >
-            {emails.filter((e) => e.unread).length} new
-          </span>
-        )}
+            {selectMode ? "Cancel" : "Select"}
+          </button>
+          {!selectMode && emails.filter((e) => e.unread).length > 0 && (
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "var(--accent)", color: "white" }}
+            >
+              {emails.filter((e) => e.unread).length} new
+            </span>
+          )}
+        </div>
       </div>
 
+      {/* Email List — scrollable */}
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
@@ -68,17 +124,43 @@ export default function EmailWidget() {
       ) : emails.length === 0 ? (
         <p className="text-sm text-[var(--text-secondary)]">Inbox zero! 🎉</p>
       ) : (
-        <div className="space-y-3">
-          {emails.slice(0, 5).map((email) => (
+        <div className="space-y-2 overflow-y-auto pr-1" style={{ maxHeight: "400px" }}>
+          {emails.map((email) => (
             <div
               key={email.id}
-              className="rounded-lg p-3 cursor-pointer transition-colors"
+              onClick={() => selectMode && toggleSelect(email.id)}
+              className={`rounded-lg p-3 transition-colors ${selectMode ? "cursor-pointer" : ""}`}
               style={{
-                background: email.unread ? "rgba(99,102,241,0.05)" : "var(--bg-primary)",
-                borderLeft: email.unread ? "3px solid var(--accent)" : "3px solid transparent",
+                background: selected.has(email.id)
+                  ? "rgba(99,102,241,0.15)"
+                  : email.unread
+                  ? "rgba(99,102,241,0.05)"
+                  : "var(--bg-primary)",
+                borderLeft: email.important
+                  ? "3px solid var(--danger)"
+                  : email.starred
+                  ? "3px solid var(--warning)"
+                  : email.unread
+                  ? "3px solid var(--accent)"
+                  : "3px solid transparent",
               }}
             >
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2 mb-1">
+                {selectMode && (
+                  <div
+                    className="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center"
+                    style={{
+                      borderColor: selected.has(email.id) ? "var(--accent)" : "var(--border)",
+                      background: selected.has(email.id) ? "var(--accent)" : "transparent",
+                    }}
+                  >
+                    {selected.has(email.id) && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                )}
                 <p className="text-sm font-medium truncate flex-1">
                   {email.starred && "⭐ "}{email.important && !email.starred && "🔴 "}{email.from}
                 </p>

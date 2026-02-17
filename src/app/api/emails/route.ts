@@ -36,7 +36,7 @@ export async function GET() {
     // Fetch unread + important emails from last 7 days
     const res = await gmail.users.messages.list({
       userId: "me",
-      maxResults: 20,
+      maxResults: 30,
       q: "in:inbox is:unread newer_than:7d",
     });
 
@@ -58,7 +58,7 @@ export async function GET() {
     }
 
     const emails = await Promise.all(
-      allMsgRefs.slice(0, 15).map(async (msg) => {
+      allMsgRefs.slice(0, 25).map(async (msg) => {
         const full = await gmail.users.messages.get({
           userId: "me",
           id: msg.id,
@@ -133,9 +133,33 @@ export async function GET() {
         return 0;
       });
 
-    return NextResponse.json({ emails: sorted.slice(0, 5) });
+    return NextResponse.json({ emails: sorted.slice(0, 15) });
   } catch (e: any) {
     console.error("Email API error:", e.message);
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const { action, ids } = await request.json();
+    if (action !== "archive" || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
+
+    const auth = await getAuth();
+    const gmail = google.gmail({ version: "v1", auth });
+
+    // Move to trash
+    await Promise.all(
+      ids.map((id: string) =>
+        gmail.users.messages.trash({ userId: "me", id })
+      )
+    );
+
+    return NextResponse.json({ success: true, deleted: ids.length });
+  } catch (e: any) {
+    console.error("Email delete error:", e.message);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
