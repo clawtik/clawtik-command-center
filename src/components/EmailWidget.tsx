@@ -9,6 +9,8 @@ interface Email {
   snippet: string;
   date: string;
   unread: boolean;
+  starred?: boolean;
+  important?: boolean;
 }
 
 export default function EmailWidget() {
@@ -67,7 +69,7 @@ export default function EmailWidget() {
         <p className="text-sm text-[var(--text-secondary)]">Inbox zero! 🎉</p>
       ) : (
         <div className="space-y-3">
-          {emails.slice(0, 3).map((email) => (
+          {emails.slice(0, 5).map((email) => (
             <div
               key={email.id}
               className="rounded-lg p-3 cursor-pointer transition-colors"
@@ -77,7 +79,9 @@ export default function EmailWidget() {
               }}
             >
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium truncate flex-1">{email.from}</p>
+                <p className="text-sm font-medium truncate flex-1">
+                  {email.starred && "⭐ "}{email.important && !email.starred && "🔴 "}{email.from}
+                </p>
                 <span className="text-xs text-[var(--text-secondary)] ml-2 shrink-0">
                   {email.date}
                 </span>
