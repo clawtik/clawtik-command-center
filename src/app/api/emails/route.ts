@@ -45,11 +45,18 @@ export async function GET() {
           date = dateStr;
         }
 
+        // Decode HTML entities in snippet
+        const rawSnippet = full.data.snippet || "";
+        const snippet = rawSnippet.replace(/&#(\d+);/g, (_: string, dec: string) => String.fromCharCode(Number(dec)))
+          .replace(/&#x([0-9a-f]+);/gi, (_: string, hex: string) => String.fromCharCode(parseInt(hex, 16)))
+          .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'");
+
         return {
           id: msg.id,
           from,
           subject: getHeader("Subject") || "(no subject)",
-          snippet: full.data.snippet || "",
+          snippet,
           date,
           unread: (full.data.labelIds || []).includes("UNREAD"),
         };

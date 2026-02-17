@@ -49,19 +49,25 @@ export default function EmailWidget() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-3 bg-[var(--border)] rounded w-3/4 mb-2" />
-              <div className="h-2 bg-[var(--border)] rounded w-1/2" />
+            <div key={i} className="rounded-lg p-3" style={{ background: "var(--bg-primary)" }}>
+              <div className="animate-pulse">
+                <div className="h-3 bg-[var(--bg-card-hover)] rounded w-3/4 mb-2" />
+                <div className="h-2 bg-[var(--bg-card-hover)] rounded w-1/2" />
+              </div>
             </div>
           ))}
         </div>
       ) : error ? (
-        <p className="text-sm text-[var(--text-secondary)]">{error}</p>
+        <div className="rounded-lg p-4 text-center" style={{ background: "var(--bg-primary)" }}>
+          <p className="text-2xl mb-2">📭</p>
+          <p className="text-sm text-[var(--text-secondary)]">Couldn&apos;t load emails</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1 opacity-60">{error}</p>
+        </div>
       ) : emails.length === 0 ? (
         <p className="text-sm text-[var(--text-secondary)]">Inbox zero! 🎉</p>
       ) : (
         <div className="space-y-3">
-          {emails.slice(0, 5).map((email) => (
+          {emails.slice(0, 3).map((email) => (
             <div
               key={email.id}
               className="rounded-lg p-3 cursor-pointer transition-colors"

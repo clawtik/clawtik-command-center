@@ -7,6 +7,13 @@ interface Message {
   text: string;
 }
 
+const SUGGESTIONS = [
+  "📧 Summarize my unread emails",
+  "📅 What's on my calendar today?",
+  "🔥 Latest AI news",
+  "💡 Give me a startup tip",
+];
+
 export default function QuickChat() {
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", text: "Yo what's good Gatik 🤙 Ask me anything or hit the mic button to talk." },
@@ -19,9 +26,9 @@ export default function QuickChat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
+  const send = async (text?: string) => {
+    const userMsg = (text || input).trim();
+    if (!userMsg || loading) return;
     setInput("");
     setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
     setLoading(true);
@@ -47,10 +54,12 @@ export default function QuickChat() {
     }
   };
 
+  const showSuggestions = messages.length <= 1 && !loading;
+
   return (
     <div
-      className="rounded-2xl flex flex-col h-[600px]"
-      style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+      className="rounded-2xl flex flex-col"
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)", height: "360px" }}
     >
       <div className="p-5 pb-3">
         <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -66,7 +75,7 @@ export default function QuickChat() {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className="max-w-[85%] rounded-xl px-4 py-2.5 text-sm"
+              className="max-w-[85%] rounded-xl px-4 py-2.5 text-sm leading-relaxed"
               style={{
                 background:
                   msg.role === "user" ? "var(--accent)" : "var(--bg-primary)",
@@ -78,6 +87,23 @@ export default function QuickChat() {
             </div>
           </div>
         ))}
+
+        {/* Suggestions */}
+        {showSuggestions && (
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            {SUGGESTIONS.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => send(s)}
+                className="text-left text-xs rounded-lg px-3 py-2.5 transition-colors hover:opacity-80"
+                style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
         {loading && (
           <div className="flex justify-start">
             <div
@@ -106,7 +132,7 @@ export default function QuickChat() {
             className="flex-1 bg-transparent outline-none text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
           />
           <button
-            onClick={send}
+            onClick={() => send()}
             disabled={loading || !input.trim()}
             className="text-[var(--accent)] hover:text-white transition-colors disabled:opacity-30"
           >

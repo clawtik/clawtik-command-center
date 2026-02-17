@@ -30,7 +30,7 @@ export default function NewsWidget() {
     { title: "Spotify's Best Devs Haven't Written Code Since December", source: "The Verge", url: "#", time: "Feb 14" },
   ];
 
-  const items = news.length > 0 ? news : fallbackNews;
+  const items = (news.length > 0 ? news : fallbackNews).slice(0, 4);
 
   return (
     <div
