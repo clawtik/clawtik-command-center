@@ -7,6 +7,7 @@ import CalendarWidget from "@/components/CalendarWidget";
 import QuickChat from "@/components/QuickChat";
 import StatusBar from "@/components/StatusBar";
 import NewsWidget from "@/components/NewsWidget";
+import VitalsWidget from "@/components/VitalsWidget";
 
 export default function Home() {
   const [greeting, setGreeting] = useState("");
@@ -45,9 +46,16 @@ export default function Home() {
       </div>
 
       {/* Row 3: Chat + News side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         <QuickChat />
         <NewsWidget />
+      </div>
+
+      {/* Row 4: System Vitals */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-1">
+          <VitalsWidget />
+        </div>
       </div>
 
       {/* Footer */}
