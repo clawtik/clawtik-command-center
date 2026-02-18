@@ -66,7 +66,7 @@ export default function UsageWidget() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-base">🤖</span>
-          <h2 className="text-sm font-bold text-white uppercase tracking-widest">API Usage</h2>
+          <h2 className="text-sm font-bold text-white uppercase tracking-widest">API Usage (Chat Only)</h2>
         </div>
         <div className="flex items-center gap-2">
           {error ? (
@@ -191,6 +191,19 @@ export default function UsageWidget() {
               <span className="text-xs text-gray-300">{formatTokens(data.week.totalTokens)} tok</span>
               <span className="text-xs font-semibold text-emerald-400">{formatCost(data.week.cost)}</span>
             </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="mt-2 pt-2 border-t border-gray-700/50 text-[9px] text-gray-500 leading-relaxed">
+            Tracks Command Center chat only. For full usage visit{" "}
+            <a
+              href="https://console.anthropic.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-400 hover:text-purple-300 underline"
+            >
+              console.anthropic.com
+            </a>
           </div>
         </>
       )}

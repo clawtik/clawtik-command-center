@@ -42,7 +42,7 @@ export function getTodayUsage(): DayUsage {
   return usageMap.get(date) ?? { date, inputTokens: 0, outputTokens: 0, calls: 0 };
 }
 
-// Pricing: claude-sonnet-4 — $3/MTok input, $15/MTok output
+// Pricing: claude-sonnet-4-6 — $3/MTok input, $15/MTok output (claude-opus-4-6 is $5/$25 MTok)
 export function estimateCost(inputTokens: number, outputTokens: number): number {
   return (inputTokens / 1_000_000) * 3 + (outputTokens / 1_000_000) * 15;
 }
