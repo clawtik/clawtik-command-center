@@ -61,10 +61,20 @@ export default function VitalsWidget() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchVitals = async () => {
-    try {
-      const res = await fetch("/api/vitals");
+    const primaryUrl = process.env.NEXT_PUBLIC_VITALS_URL
+      ? `${process.env.NEXT_PUBLIC_VITALS_URL}/vitals`
+      : null;
+
+    const tryFetch = async (url: string) => {
+      const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
       if (!res.ok) throw new Error("fetch failed");
-      const data = await res.json();
+      return res.json();
+    };
+
+    try {
+      const data = primaryUrl
+        ? await tryFetch(primaryUrl).catch(() => tryFetch("/api/vitals"))
+        : await tryFetch("/api/vitals");
       setVitals(data);
       setLastUpdated(new Date());
       setError(false);
