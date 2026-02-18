@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordUsage } from "@/lib/usageTracker";
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
@@ -31,6 +32,10 @@ async function callAnthropic(message: string): Promise<string> {
     }),
   });
   const data = await res.json();
+  // Log token usage from Anthropic response
+  if (data.usage) {
+    recordUsage(data.usage.input_tokens ?? 0, data.usage.output_tokens ?? 0);
+  }
   return data.content?.[0]?.text || "No response";
 }
 
